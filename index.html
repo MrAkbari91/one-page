@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>data</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.6/xlsx.full.min.js"></script>
+	<style>
+		.form-control{
+			padding-right:16px;
+			padding-left:16px;
+			padding-top: 7px;
+			padding-bottom: 10px;
+			font-size: 16px;
+			color: rgb(71, 71, 71);
+			border-style: solid;
+			border-radius: 4px;
+			background-color: rgb(255, 255, 255);
+			border-color: rgb(226, 226, 226);
+			vertical-align: middle;
+			margin: 0;
+		}
+		.btn{
+			color: rgb(247, 248, 248);
+			background-color: rgb(14, 48, 45);
+
+			display: inline-block;
+			font-weight: 400;
+			text-align: center;
+			vertical-align: middle;
+			padding: 5px 10px;
+			font-size: 1rem;
+			line-height: 1.5;
+			border-radius: 4px
+		}
+
+		table{
+			border-collapse: collapse;
+			border: 1px solid #dee2e6;
+			width: 100%;
+			max-width: 100%;
+			margin-bottom: 1rem;
+			background-color: transparent;
+		}
+		.mt-5{
+			margin-top:	3rem ;
+		}
+		th, td{
+			padding: 0.75rem;
+			border: 1px solid #dee2e6;
+			text-align: inherit;
+		}
+		#excel_data{
+			display: none;
+		}
+		.display-table{
+			display: table-row!important;
+		}
+	</style>
+</head>
+<body>
+	<div class="m-3">
+		<input type="text" id="filter" class="form-control" placeholder="Search">
+		<input type="button" name="Search" class="btn" value="Search" onclick="search()">
+		<div class="mt-5">
+			<table id="excel_data" class="table table-bordered"></table>
+		</div>
+		<div id="messege"></div>
+	</div>
+
+	<script>
+		var xhttp = new XMLHttpRequest();
+		xhttp.open("GET", "data.xlsx", true);
+		xhttp.responseType = "arraybuffer";
+
+		xhttp.onload = function(e) {
+			var arraybuffer = xhttp.response;
+
+			/* convert data to binary string */
+			var data = new Uint8Array(arraybuffer);
+			var arr = new Array();
+			for(var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+				var bstr = arr.join("");
+
+			var workbook = XLSX.read(bstr, {type:"binary"});
+
+			var first_sheet_name = workbook.SheetNames[0];
+			/* Get worksheet */
+			var worksheet = workbook.Sheets[first_sheet_name];
+			var jsonData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+           // console.log(jsondata);
+           displayJsonToHtmlTable(jsonData);
+       }
+
+
+       function displayJsonToHtmlTable(jsonData){
+       	var table=document.getElementById("excel_data");
+       	if(jsonData.length>0){
+       		var htmlData='<tr id="thead"> <th>Used for & benefits</th> <th>Common name</th> <th>Latin name</th> <th>Type of plant</th> <th>Parts used & uses</th> <th>Best form</th> <th>Harvest</th> <th>Dangers</th></tr>';
+       		for(var i=0;i<jsonData.length;i++){
+       			var row=jsonData[i];
+       			htmlData+='<tr class="arrays"> <td>'+row["used for & benefits"]+'</td> <td>'+row["Common name"]+'</td> <td>'+row["Latin name"]+'</td> <td>'+row["type of plant"]+'</td> <td>'+row["parts used & uses"]+'</td> <td>'+row["best form"]+'</td> <td>'+row["harvest"]+'</td> <td>'+row["dangers"]+'</td> </tr>';
+       		}
+       		table.innerHTML=htmlData;
+       	}else{
+       		table.innerHTML='There is no data in Excel';
+       	}
+       }
+
+       xhttp.send();
+
+       function search() {
+       	let input = document.getElementById('filter').value;
+       	let messege = document.getElementById('messege');
+       	var table=document.getElementById("excel_data");
+       	let thead = document.getElementById('thead');
+       	input=input.toLowerCase();
+       	let x = document.getElementsByClassName('arrays');
+
+       	for (i = 0; i < x.length; i++) { 
+       		if (!x[i].innerHTML.toLowerCase().includes(input)) {
+       			table.classList.add("display-table");
+       			x[i].style.display="none";
+       		}else{
+       			thead.style.display="table-row";
+       			x[i].style.display="table-row";
+       			messege.innerHTML="No data Found";
+
+       		}
+       	}
+       }
+   </script>
+</body>
+</html>
